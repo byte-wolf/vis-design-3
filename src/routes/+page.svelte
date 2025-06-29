@@ -2,83 +2,91 @@
 	import Axis from '$lib/components/Axis.svelte';
 	import * as d3 from 'd3';
 
+	// --- 1. DATA AND DIMENSIONS ---
 	const { data } = $props();
-
-	let chartData = $state(data.chartData);
+	// Filter out any data points where VPI or the new indexed income might be missing
+	let chartData = $state(
+		data.chartData.filter((d) => d.vpi != null && d.indexedGrossIncome != null)
+	);
 
 	let width = $state(900);
 	let height = $state(500);
-	const margins = $state({
-		top: 50,
-		right: 40,
-		bottom: 50,
-		left: 60
-	});
+	const margins = $state({ top: 30, right: 40, bottom: 65, left: 65 });
 
 	const innerWidth = $derived(width - margins.left - margins.right);
 	const innerHeight = $derived(height - margins.top - margins.bottom);
 
-	// The X scale maps years to horizontal pixels.
 	const xScale = $derived(
 		d3
 			.scaleLinear()
-			// d3.extent gets the min and max year from our data
 			.domain(d3.extent(chartData, (d) => d.year) as [number, number])
 			.range([0, innerWidth])
 	);
 
-	// Linke Y-Skala für das Bruttoeinkommen (bleibt gleich)
-	const yScaleIncome = $derived(
+	// --- 2. UNIFIED Y-SCALE ---
+	// A single Y-scale for both indexed income and VPI, as they share a base of 100.
+	const yDomain = $derived(() => {
+		if (chartData.length === 0) return [80, 120]; // Default domain
+		const allValues = chartData.flatMap((d) => [d.indexedGrossIncome, d.vpi ?? 100]);
+		return d3.extent(allValues) as [number, number];
+	});
+
+	const yScale = $derived(
 		d3
 			.scaleLinear()
-			.domain([0, d3.max(chartData, (d) => d.grossIncomePerPerson) as number])
+			.domain(yDomain() as [number, number])
 			.range([innerHeight, 0])
 			.nice()
 	);
 
-	// NEU: Rechte Y-Skala für den Verbraucherpreisindex (VPI)
-	const yScaleVPI = $derived(
-		d3
-			.scaleLinear()
-			.domain(d3.extent(chartData, (d) => d.vpi) as [number, number])
-			.range([innerHeight, 0])
-			.nice()
-	);
-
-	// Generator für die Einkommenslinie
+	// --- 3. LINE GENERATORS ---
 	const lineGeneratorIncome = $derived(
 		d3
 			.line<(typeof chartData)[0]>()
 			.x((d) => xScale(d.year))
-			.y((d) => yScaleIncome(d.grossIncomePerPerson))
+			.y((d) => yScale(d.indexedGrossIncome))
 			.curve(d3.curveMonotoneX)
 	);
 	const linePathIncome = $derived(lineGeneratorIncome(chartData));
 
-	// NEU: Generator für die VPI-Linie
 	const lineGeneratorVPI = $derived(
 		d3
 			.line<(typeof chartData)[0]>()
 			.x((d) => xScale(d.year))
-			.y((d) => yScaleVPI(d.vpi || 100)) // `d.vpi!` ist sicher, da wir oben gefiltert haben
+			.y((d) => yScale(d.vpi || 100))
 			.curve(d3.curveMonotoneX)
 	);
 	const linePathVPI = $derived(lineGeneratorVPI(chartData));
 </script>
 
-<div class="chart-container">
-	<h1 class="chart-title">Einkommensentwicklung vs. Inflation (VPI)</h1>
+<h1 class="pt-2 text-2xl leading-5 font-bold text-neutral-900">
+	Income Development vs. Inflation (CPI)
+</h1>
+<p class="mb-4 text-base font-semibold text-neutral-500">From 2010 to 2022</p>
+
+<div class="chart-container inline-block rounded-md bg-neutral-50 p-2">
+	<div class="flex gap-4 rounded p-2" style="width: {width}px">
+		<div class="flex items-center gap-2 rounded-md bg-[#e8f8f6] px-2">
+			<div class="flex items-center">
+				<div class="h-1 w-1 rounded-l bg-[#2DD4BF]"></div>
+				<div class="size-2.5 rounded-lg bg-[#2DD4BF]"></div>
+				<div class="h-1 w-1 rounded-r bg-[#2DD4BF]"></div>
+			</div>
+			<p class="pb-0.5 font-semibold text-[#115046]">Average Gross Income</p>
+		</div>
+
+		<div class="flex items-center gap-2 rounded-md bg-[#f4f0ff] px-2">
+			<div class="flex items-center">
+				<div class="h-1 w-1 rounded-l bg-[#8B5CF6]"></div>
+				<div class="size-2.5 rounded-lg bg-[#8B5CF6]"></div>
+				<div class="h-1 w-1 rounded-r bg-[#8B5CF6]"></div>
+			</div>
+			<p class="pb-0.5 font-semibold text-[#34235a]">Consumer Price Index (CPI)</p>
+		</div>
+	</div>
 
 	<svg {width} {height} class="chart-svg">
 		<g transform="translate({margins.left}, {margins.top})">
-			<!-- NEU: Legende -->
-			<g class="legend" transform="translate(0, -25)">
-				<circle cx="0" cy="0" r="5" fill="#1155ff"></circle>
-				<text x="10" y="5">Bruttoeinkommen p.P.</text>
-				<circle cx="180" cy="0" r="5" fill="#ff6f61"></circle>
-				<text x="190" y="5">Verbraucherpreisindex (VPI)</text>
-			</g>
-
 			<!-- Achsen -->
 			<Axis
 				scale={xScale}
@@ -86,25 +94,11 @@
 				axisFn="axisBottom"
 				ticks={chartData.length}
 			/>
-			<Axis
-				scale={yScaleIncome}
-				transform="translate(0,0)"
-				axisFn="axisLeft"
-				{innerWidth}
-				ticks={10}
-			/>
-			<!-- NEU: Rechte Y-Achse für den VPI -->
-			<Axis
-				scale={yScaleVPI}
-				transform="translate({innerWidth}, 0)"
-				axisFn="axisRight"
-				ticks={10}
-				{innerWidth}
-			/>
+			<Axis scale={yScale} transform="translate(0,0)" axisFn="axisLeft" {innerWidth} ticks={10} />
 
 			<!-- Achsenbeschriftungen -->
-			<text class="axis-label" x={innerWidth / 2} y={innerHeight + 40} text-anchor="middle">
-				Jahr
+			<text class="axis-label" x={innerWidth / 2} y={innerHeight + 50} text-anchor="middle">
+				Year
 			</text>
 			<text
 				class="axis-label"
@@ -113,36 +107,25 @@
 				x={-innerHeight / 2}
 				text-anchor="middle"
 			>
-				Bruttoeinkommen pro Person (€)
-			</text>
-			<!-- NEU: Rechte Achsenbeschriftung -->
-			<text
-				class="axis-label"
-				transform="rotate(90)"
-				y={-width + margins.right}
-				x={innerHeight / 2}
-				text-anchor="middle"
-			>
-				Verbraucherpreisindex (VPI)
+				Index (Base {chartData[0]?.year})
 			</text>
 
 			<!-- Datenlinien -->
-			<path class="line" d={linePathIncome} fill="none" stroke="#1155ff" stroke-width="2.5" />
-			<!-- NEU: VPI-Linie -->
-			<path class="line-vpi" d={linePathVPI} fill="none" stroke="#ff6f61" stroke-width="2.5" />
+			<path class="line" d={linePathIncome} fill="none" stroke="#2DD4BF" stroke-width="2.5" />
+			<path class="line-vpi" d={linePathVPI} fill="none" stroke="#8B5CF6" stroke-width="2.5" />
 
 			<!-- Datenpunkte (Kreise) -->
 			{#each chartData as d (d.year)}
 				<!-- Einkommens-Punkte -->
-				<circle cx={xScale(d.year)} cy={yScaleIncome(d.grossIncomePerPerson)} r="4" fill="#1155ff">
+				<circle cx={xScale(d.year)} cy={yScale(d.indexedGrossIncome)} r="3" fill="#2DD4BF">
 					<title>
-						Jahr: {d.year}\nBruttoeinkommen: {d.grossIncomePerPerson.toFixed(2)}€
+						Year: {d.year}\nEinkommens-Index: {d.indexedGrossIncome.toFixed(2)}
 					</title>
 				</circle>
 
-				<!-- NEU: VPI-Punkte -->
-				<circle cx={xScale(d.year)} cy={yScaleVPI(d.vpi || 100)} r="4" fill="#ff6f61">
-					<title>Jahr: {d.year}\nVPI: {d.vpi?.toFixed(2) || 0}</title>
+				<!-- VPI-Punkte -->
+				<circle cx={xScale(d.year)} cy={yScale(d.vpi || 100)} r="3" fill="#8B5CF6">
+					<title>Year: {d.year}\nVPI: {d.vpi?.toFixed(2) || 0}</title>
 				</circle>
 			{/each}
 		</g>

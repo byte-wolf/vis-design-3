@@ -24,11 +24,17 @@
 
 			// Spezifische Formatierungen für jede Achsenart
 			if (axisFn === 'axisLeft') {
-				axis.tickSize(-innerWidth).tickFormat((d) => `€${(d as number) / 1000}k`);
+				axis
+					.tickSize(-innerWidth)
+					.tickFormat((d) => `${d}`)
+					.tickPadding(15);
 			} else if (axisFn === 'axisRight') {
-				axis.tickSize(-innerWidth).tickFormat((d) => `${d}`);
+				axis
+					.tickSize(-innerWidth)
+					.tickFormat((d) => `${d}`)
+					.tickPadding(15);
 			} else if (axisFn === 'axisBottom') {
-				axis.tickFormat(d3.format('d'));
+				axis.tickFormat(d3.format('d')).tickPadding(10);
 			}
 
 			d3.select(g).call(axis as any);

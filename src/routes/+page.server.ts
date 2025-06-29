@@ -39,7 +39,7 @@ export const load: PageServerLoad = async () => {
             netIncome: parseInt(row['F-NBEZ']),
             totalEntities: parseInt(row['F-Z_INSGES']),
             duration: parseInt(row['C-BEZD_2-0']),
-        }));
+        })).filter(d => d.year >= 2010);
 
         const groupedByYear = d3.rollup(
             processedRows,
@@ -72,7 +72,9 @@ export const load: PageServerLoad = async () => {
             netIncomePerPerson: value.netIncomePerEntity,
             totalNetIncome: value.totalNetIncome,
             totalGrossIncome: value.totalGrossIncome
-        })).sort((a, b) => a.year - b.year).filter(d => d.year >= 2010);
+        })).sort((a, b) => a.year - b.year);
+
+        const baseGrossIncome = yearlyIncomeData[0]?.grossIncomePerPerson;
 
         // Für einen schnellen Zugriff wandeln wir die VPI-Daten in eine Map um: { year => indexValue }
         const vpiMap = new Map(vpiData.map(d => [d.year, d.indexValue]));
@@ -80,9 +82,11 @@ export const load: PageServerLoad = async () => {
         // Wir nehmen die Einkommensdaten als Basis und fügen die VPI-Werte hinzu
         const combinedData = yearlyIncomeData.map(incomeItem => {
             const vpiValue = vpiMap.get(incomeItem.year);
+            const indexedGrossIncome = baseGrossIncome ? (incomeItem.grossIncomePerPerson / baseGrossIncome) * 100 : 100;
             return {
                 ...incomeItem,
-                vpi: vpiValue ?? null // Füge den VPI-Jahreswert hinzu
+                vpi: vpiValue ?? 100, // Füge den VPI-Jahreswert hinzu
+                indexedGrossIncome
             };
         });
 
