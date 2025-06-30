@@ -2,6 +2,8 @@
 	import Axis from '$lib/components/Axis.svelte';
 	import * as d3 from 'd3';
 
+	import ArrowUpRightIcon from 'lucide-svelte/icons/arrow-up-right';
+
 	// --- 1. DATA AND DIMENSIONS ---
 	const { data } = $props();
 	// Filter out any data points where VPI or the new indexed income might be missing
@@ -79,9 +81,9 @@
 
 		<div class="flex items-center gap-2 rounded-md bg-[#f4f0ff] px-2">
 			<div class="flex items-center">
-				<div class="h-1 w-1 rounded-l bg-[#8B5CF6]"></div>
+				<div class="mr-0.5 h-1 w-1 rounded-l bg-[#8B5CF6]"></div>
 				<div class="size-2.5 rounded-lg bg-[#8B5CF6]"></div>
-				<div class="h-1 w-1 rounded-r bg-[#8B5CF6]"></div>
+				<div class="ml-0.5 h-1 w-1 rounded-r bg-[#8B5CF6]"></div>
 			</div>
 			<p class="pb-0.5 font-semibold text-[#34235a]">Consumer Price Index (CPI)</p>
 		</div>
@@ -114,7 +116,14 @@
 
 			<!-- Datenlinien -->
 			<path class="line" d={linePathIncome} fill="none" stroke="#2DD4BF" stroke-width="2.5" />
-			<path class="line-vpi" d={linePathVPI} fill="none" stroke="#8B5CF6" stroke-width="2.5" />
+			<path
+				class="line-vpi"
+				d={linePathVPI}
+				fill="none"
+				stroke="#8B5CF6"
+				stroke-width="2.5"
+				stroke-dasharray="5,5"
+			/>
 
 			<!-- Datenpunkte (Kreise) -->
 			{#each chartData as d (d.year)}
@@ -134,42 +143,6 @@
 	</svg>
 </div>
 
-{#if chartData}
-	<div class="mt-4">
-		<p class="mb-2">Loaded {chartData.length} records from income.csv</p>
-
-		<!-- Display first few rows as a preview -->
-		<div class="overflow-x-auto">
-			<table class="min-w-full border border-gray-300">
-				<thead class="bg-gray-50">
-					<tr>
-						{#each Object.keys(chartData[0]) as header}
-							<th class="border border-gray-300 px-4 py-2 text-left">{header}</th>
-						{/each}
-					</tr>
-				</thead>
-				<tbody>
-					{#each chartData.slice(0, 15) as row, i}
-						<tr class={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-							{#each Object.values(row) as value}
-								<td class="border border-gray-300 px-4 py-2"
-									>{typeof value === 'number' ? value.toLocaleString() : value}</td
-								>
-							{/each}
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</div>
-
-		{#if chartData.length > 15}
-			<p class="mt-2 text-gray-600">Showing first 15 of {chartData.length} records</p>
-		{/if}
-	</div>
-{:else}
-	<p class="mt-4 text-red-600">No income data available</p>
-{/if}
-
 {#if tableData}
 	<div class="mt-4">
 		<table class="border border-gray-300">
@@ -179,7 +152,8 @@
 					<th class="border border-gray-300 px-4 py-2 text-center">ÖNACE Category</th>
 					<th class="border border-gray-300 px-4 py-2 text-center">Average Gross Income 2010</th>
 					<th class="border border-gray-300 px-4 py-2 text-center">Average Gross Income 2022</th>
-					<th class="border border-gray-300 px-4 py-2 text-center">Average Gross Income Increase</th>
+					<th class="border border-gray-300 px-4 py-2 text-center">Average Gross Income Increase</th
+					>
 				</tr>
 			</thead>
 			<tbody>
@@ -189,7 +163,12 @@
 						<td class="border border-gray-300 px-4 py-2">{row.categoryName}</td>
 						<td class="border border-gray-300 px-4 py-2 text-center">{row['2010']}</td>
 						<td class="border border-gray-300 px-4 py-2 text-center">{row['2022']}</td>
-						<td class="border border-gray-300 px-4 py-2 text-center">{row.increase}</td>
+						<td class="border border-gray-300 px-4 py-2 text-center">
+							<div class="flex items-center justify-center gap-1 text-[#1d8b7d]">
+								<ArrowUpRightIcon class="size-5" />
+								<span class="pb-0.5 leading-0">{row.increase}</span>
+							</div>
+						</td>
 					</tr>
 				{/each}
 			</tbody>
