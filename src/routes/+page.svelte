@@ -143,10 +143,15 @@
 	</svg>
 </div>
 
+<div class="h-8"></div>
+
+<h1 class="pt-2 text-2xl leading-5 font-bold text-neutral-900">Income Increase by Industry</h1>
+<p class="mb-4 text-base font-semibold text-neutral-500">From 2010 to 2022</p>
+
 {#if tableData}
-	<div class="mt-4">
+	<div class="mt-4 inline-block overflow-hidden rounded-md bg-neutral-50 p-5">
 		<table class="border border-gray-300">
-			<thead class="bg-gray-50">
+			<thead class="bg-gray-100">
 				<tr>
 					<th class="border border-gray-300 px-4 py-2 text-center">ÖNACE Code</th>
 					<th class="border border-gray-300 px-4 py-2 text-center">ÖNACE Category</th>
