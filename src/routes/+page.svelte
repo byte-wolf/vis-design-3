@@ -57,6 +57,8 @@
 			.curve(d3.curveMonotoneX)
 	);
 	const linePathVPI = $derived(lineGeneratorVPI(chartData));
+
+	const tableData = $derived(data.tableData);
 </script>
 
 <h1 class="pt-2 text-2xl leading-5 font-bold text-neutral-900">
@@ -166,4 +168,31 @@
 	</div>
 {:else}
 	<p class="mt-4 text-red-600">No income data available</p>
+{/if}
+
+{#if tableData}
+	<div class="mt-4">
+		<table class="border border-gray-300">
+			<thead class="bg-gray-50">
+				<tr>
+					<th class="border border-gray-300 px-4 py-2 text-center">ÖNACE Code</th>
+					<th class="border border-gray-300 px-4 py-2 text-center">ÖNACE Category</th>
+					<th class="border border-gray-300 px-4 py-2 text-center">Average Gross Income 2010</th>
+					<th class="border border-gray-300 px-4 py-2 text-center">Average Gross Income 2022</th>
+					<th class="border border-gray-300 px-4 py-2 text-center">Average Gross Income Increase</th>
+				</tr>
+			</thead>
+			<tbody>
+				{#each tableData as row, i}
+					<tr class={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+						<td class="border border-gray-300 px-4 py-2 text-center">{row.categoryCode}</td>
+						<td class="border border-gray-300 px-4 py-2">{row.categoryName}</td>
+						<td class="border border-gray-300 px-4 py-2 text-center">{row['2010']}</td>
+						<td class="border border-gray-300 px-4 py-2 text-center">{row['2022']}</td>
+						<td class="border border-gray-300 px-4 py-2 text-center">{row.increase}</td>
+					</tr>
+				{/each}
+			</tbody>
+		</table>
+	</div>
 {/if}
