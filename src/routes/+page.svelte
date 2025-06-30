@@ -3,6 +3,7 @@
 	import * as d3 from 'd3';
 
 	import ArrowUpRightIcon from 'lucide-svelte/icons/arrow-up-right';
+	import ArrowUpIcon from 'lucide-svelte/icons/arrow-up';
 
 	// --- 1. DATA AND DIMENSIONS ---
 	const { data } = $props();
@@ -63,10 +64,45 @@
 	const tableData = $derived(data.tableData);
 </script>
 
-<h1 class="pt-2 text-2xl leading-5 font-bold text-neutral-900">
-	Income Development vs. Inflation (CPI)
-</h1>
-<p class="mb-4 text-base font-semibold text-neutral-500">From 2010 to 2022</p>
+<h1 class="pt-2 text-4xl font-bold text-neutral-900">Key Income Data: Austria</h1>
+<p class="mb-6 text-lg font-semibold text-neutral-600">From 2010 to 2022</p>
+
+<div class="flex gap-4 pb-8">
+	<div class="inline-block rounded-lg bg-[#f7f3ff] px-8 py-6 text-[#3b2869]">
+		<div class="font-semibold">Gross Income per Person</div>
+		<div class="leading-3">2022</div>
+		<div class="pt-4 text-3xl font-semibold">
+			{Math.round(chartData[chartData.length - 1]?.grossIncomePerPerson).toLocaleString('en') ||
+				'Jetz mal halblang'} €
+		</div>
+		<div class="flex items-center gap-1 text-[#6929ff]">
+			<ArrowUpIcon class="size-4" />
+			{(
+				(chartData[chartData.length - 1].grossIncomePerPerson / chartData[0].grossIncomePerPerson -
+					1.0) *
+				100
+			).toFixed(2)} % increase over 2010
+		</div>
+	</div>
+
+	<div class="inline-block rounded-lg bg-[#edf7f7] px-8 py-6 text-[#1e5f5f]">
+		<div class="font-semibold">Consumer Price Index (CPI)</div>
+		<div class="leading-3">2022</div>
+		<div class="pt-4 text-3xl font-semibold">
+			{chartData[chartData.length - 1]?.vpi.toFixed(1).toLocaleString('en') || 'Jetz mal halblang'}
+		</div>
+		<div class="flex items-center gap-1 text-[#08a0a0]">
+			<ArrowUpIcon class="size-4" />
+			{((chartData[chartData.length - 1].vpi / chartData[0].vpi - 1.0) * 100).toFixed(1)} % increase
+			over 2010
+		</div>
+	</div>
+</div>
+
+<h2 class="text-xl font-bold text-neutral-900">Income Development vs. Inflation</h2>
+<p class="mb-2 text-base font-semibold text-neutral-600">
+	A comparison between the relative average gross income and the consumer price index (CPI)
+</p>
 
 <div class="chart-container inline-block rounded-md bg-neutral-50 p-2">
 	<div class="flex gap-4 rounded p-2" style="width: {width}px">
@@ -145,30 +181,33 @@
 
 <div class="h-8"></div>
 
-<h1 class="pt-2 text-2xl leading-5 font-bold text-neutral-900">Income Increase by Industry</h1>
-<p class="mb-4 text-base font-semibold text-neutral-500">From 2010 to 2022</p>
+<h2 class="text-xl font-bold text-neutral-900">Income Increase by Industry</h2>
+<p class="mb-2 text-base font-semibold text-neutral-600">
+	The average increase in gross income by industry
+</p>
 
 {#if tableData}
 	<div class="mt-4 inline-block overflow-hidden rounded-md bg-neutral-50 p-5">
 		<table class="border border-gray-300">
 			<thead class="bg-gray-100">
 				<tr>
-					<th class="border border-gray-300 px-4 py-2 text-center">ÖNACE Code</th>
-					<th class="border border-gray-300 px-4 py-2 text-center">ÖNACE Category</th>
-					<th class="border border-gray-300 px-4 py-2 text-center">Average Gross Income 2010</th>
-					<th class="border border-gray-300 px-4 py-2 text-center">Average Gross Income 2022</th>
-					<th class="border border-gray-300 px-4 py-2 text-center">Average Gross Income Increase</th
+					<th class="border border-gray-300 px-4 py-1.5 text-center">ÖNACE Code</th>
+					<th class="border border-gray-300 px-4 py-1.5 text-center">ÖNACE Category</th>
+					<th class="border border-gray-300 px-4 py-1.5 text-center">Average Gross Income 2010</th>
+					<th class="border border-gray-300 px-4 py-1.5 text-center">Average Gross Income 2022</th>
+					<th class="border border-gray-300 px-4 py-1.5 text-center"
+						>Average Gross Income Increase</th
 					>
 				</tr>
 			</thead>
 			<tbody>
 				{#each tableData as row, i}
 					<tr class={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-						<td class="border border-gray-300 px-4 py-2 text-center">{row.categoryCode}</td>
-						<td class="border border-gray-300 px-4 py-2">{row.categoryName}</td>
-						<td class="border border-gray-300 px-4 py-2 text-center">{row['2010']}</td>
-						<td class="border border-gray-300 px-4 py-2 text-center">{row['2022']}</td>
-						<td class="border border-gray-300 px-4 py-2 text-center">
+						<td class="border border-gray-300 px-4 py-1.5 text-center">{row.categoryCode}</td>
+						<td class="border border-gray-300 px-4 py-1.5">{row.categoryName}</td>
+						<td class="border border-gray-300 px-4 py-1.5 text-center">{row['2010']}</td>
+						<td class="border border-gray-300 px-4 py-1.5 text-center">{row['2022']}</td>
+						<td class="border border-gray-300 px-4 py-1.5 text-center">
 							<div class="flex items-center justify-center gap-1 text-[#1d8b7d]">
 								<ArrowUpRightIcon class="size-5" />
 								<span class="pb-0.5 leading-0">{row.increase}</span>
