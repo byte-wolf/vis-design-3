@@ -68,14 +68,14 @@
 <p class="mb-6 text-lg font-semibold text-neutral-600">From 2010 to 2022</p>
 
 <div class="flex gap-4 pb-8">
-	<div class="inline-block rounded-lg bg-[#f7f3ff] px-8 py-6 text-[#3b2869]">
+	<div class="inline-block rounded-lg bg-[#edf7f7] px-8 py-6 text-[#1e5f5f]">
 		<div class="font-semibold">Gross Income per Person</div>
 		<div class="leading-3">2022</div>
 		<div class="pt-4 text-3xl font-semibold">
 			{Math.round(chartData[chartData.length - 1]?.grossIncomePerPerson).toLocaleString('en') ||
 				'Jetz mal halblang'} €
 		</div>
-		<div class="flex items-center gap-1 text-[#6929ff]">
+		<div class="flex items-center gap-1 text-[#08a0a0]">
 			<ArrowUpIcon class="size-4" />
 			{(
 				(chartData[chartData.length - 1].grossIncomePerPerson / chartData[0].grossIncomePerPerson -
@@ -85,13 +85,13 @@
 		</div>
 	</div>
 
-	<div class="inline-block rounded-lg bg-[#edf7f7] px-8 py-6 text-[#1e5f5f]">
+	<div class="inline-block rounded-lg bg-[#f7f3ff] px-8 py-6 text-[#3b2869]">
 		<div class="font-semibold">Consumer Price Index (CPI)</div>
 		<div class="leading-3">2022</div>
 		<div class="pt-4 text-3xl font-semibold">
 			{chartData[chartData.length - 1]?.vpi.toFixed(1).toLocaleString('en') || 'Jetz mal halblang'}
 		</div>
-		<div class="flex items-center gap-1 text-[#08a0a0]">
+		<div class="flex items-center gap-1 text-[#6929ff]">
 			<ArrowUpIcon class="size-4" />
 			{((chartData[chartData.length - 1].vpi / chartData[0].vpi - 1.0) * 100).toFixed(1)} % increase
 			over 2010
